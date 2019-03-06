@@ -183,7 +183,7 @@ public class PESDKModule extends ReactContextBaseJavaModule {
         cropConfig.add(new CropAspectConfig(3, 2));
         cropConfig.add(new CropAspectConfig(2, 3));
 
-        config.setForcedCropMode(true, new CropAspectConfig(1, 1), new CropAspectConfig(1, 1));
+        config.setForcedCropMode(true, new CropAspectConfig(2, 3), new CropAspectConfig(1, 1));
         config.setAspects(cropConfig);
 
         config.setTools(tools);
