@@ -49,13 +49,13 @@ static NSString *letters = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
 
 
 +(NSString *) randomStringWithLength: (int) len {
-    
+
     NSMutableString *randomString = [NSMutableString stringWithCapacity: len];
-    
+
     for (int i=0; i<len; i++) {
         [randomString appendFormat: @"%C", [letters characterAtIndex: arc4random_uniform([letters length])]];
     }
-    
+
     return randomString;
 }
 
@@ -84,16 +84,16 @@ static NSString *letters = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
     };
 }
 
--(void)_openEditor: (PESDKPhoto *)image config: (PESDKConfiguration *)config features: (NSArray*)features resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject {
+-(void)_openEditor: (UIImage *)image config: (PESDKConfiguration *)config features: (NSArray*)features resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject {
     self.resolver = resolve;
     self.rejecter = reject;
-    
+
     // Just an empty model
     PESDKPhotoEditModel* photoEditModel = [[PESDKPhotoEditModel alloc] init];
-    
+
     // Build the menu items from the features array if present
     NSMutableArray<PESDKPhotoEditMenuItem *>* menuItems = [[NSMutableArray alloc] init];
-    
+
     // Default features
     if (features == nil || [features count] == 0) {
         features = @[
@@ -108,7 +108,7 @@ static NSString *letters = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
           [NSNumber numberWithInt: magic]
         ];
     }
-    
+
     [features enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         int feature = [obj intValue];
         switch (feature) {
@@ -170,13 +170,13 @@ static NSString *letters = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
                 break;
         }
     }];
-    
-    
-    self.editController = [[PESDKPhotoEditViewController alloc] initWithPhotoAsset:image configuration:config menuItems:menuItems photoEditModel:photoEditModel];
-    
+
+
+    self.editController = [[PESDKPhotoEditViewController alloc] initWithPhoto:image configuration:config menuItems:menuItems photoEditModel:photoEditModel];
+
     self.editController.delegate = self;
     UIViewController *currentViewController = RCTPresentedViewController();
-    
+
     dispatch_async(dispatch_get_main_queue(), ^{
         [currentViewController presentViewController:self.editController animated:YES completion:nil];
     });
@@ -188,53 +188,48 @@ static NSString *letters = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
             if ([options valueForKey:kBackgroundColorEditorKey]) {
                 b.backgroundColor = [AVHexColor colorWithHexString: [options valueForKey:kBackgroundColorEditorKey]];
             }
-            
+
             if ([options valueForKey:kBackgroundColorMenuEditorKey]) {
                 b.menuBackgroundColor = [AVHexColor colorWithHexString: [options valueForKey:kBackgroundColorMenuEditorKey]];
             }
-            
+
             if ([options valueForKey:kForceCrop]) {
                 b.forceCropMode = [[options valueForKey:kForceCrop] boolValue];
-
             }
-            
-        }];
-        
-        [builder configureCameraViewController:^(PESDKCameraViewControllerOptionsBuilder * b) {
-            if ([options valueForKey:kBackgroundColorCameraKey]) {
-                b.backgroundColor = [AVHexColor colorWithHexString: (NSString*)[options valueForKey:kBackgroundColorCameraKey]];
-            }
-            
-            if ([[options allKeys] containsObject:kCameraRollAllowedKey]) {
-                b.showCameraRoll = [[options valueForKey:kCameraRollAllowedKey] boolValue];
-            }
-            
-            if ([[options allKeys] containsObject: kShowFiltersInCameraKey]) {
-                b.showFilters = [[options valueForKey:kShowFiltersInCameraKey] boolValue];
-            }
-
-            
-            // TODO: Video recording not supported currently
-            b.allowedRecordingModesAsNSNumbers = @[[NSNumber numberWithInteger:RecordingModePhoto]];
         }];
 
         [builder configureTransformToolController:^(PESDKTransformToolControllerOptionsBuilder * _Nonnull options) {
             options.allowFreeCrop = NO;
             options.allowedCropRatios = @[
-                                          [[PESDKCropAspect alloc] initWithWidth:1 height:1 localizedName:@"Square" rotatable:NO],
-                                         [[PESDKCropAspect alloc] initWithWidth:3 height:2 localizedName:@"Landscape" rotatable:NO],
-                                         [[PESDKCropAspect alloc] initWithWidth:2 height:3 localizedName:@"Portrait" rotatable:NO]
-                                          ];
+                [[PESDKCropAspect alloc] initWithWidth:1 height:1 localizedName:@"Square" rotatable:NO],
+                [[PESDKCropAspect alloc] initWithWidth:3 height:2 localizedName:@"Landscape" rotatable:NO],
+                [[PESDKCropAspect alloc] initWithWidth:2 height:3 localizedName:@"Portrait" rotatable:NO]
+            ];
         }];
 
-        
+        [builder configureCameraViewController:^(PESDKCameraViewControllerOptionsBuilder * b) {
+            if ([options valueForKey:kBackgroundColorCameraKey]) {
+                b.backgroundColor = [AVHexColor colorWithHexString: (NSString*)[options valueForKey:kBackgroundColorCameraKey]];
+            }
+
+            if ([[options allKeys] containsObject:kCameraRollAllowedKey]) {
+                b.showCameraRoll = [[options valueForKey:kCameraRollAllowedKey] boolValue];
+            }
+
+            if ([[options allKeys] containsObject: kShowFiltersInCameraKey]) {
+                b.showFilters = [[options valueForKey:kShowFiltersInCameraKey] boolValue];
+            }
+
+            // TODO: Video recording not supported currently
+            b.allowedRecordingModesAsNSNumbers = @[[NSNumber numberWithInteger:RecordingModePhoto]];
+        }];
     }];
-    
+
     return config;
 }
 
 RCT_EXPORT_METHOD(openEditor: (NSString*)path options: (NSArray *)features options: (NSDictionary*) options resolve: (RCTPromiseResolveBlock)resolve reject: (RCTPromiseRejectBlock)reject) {
-    PESDKPhoto* image = [[PESDKPhoto alloc] initWithUrl:[NSURL URLWithString:path]];
+    UIImage* image = [UIImage imageWithContentsOfFile: path];
     PESDKConfiguration* config = [self _buildConfig:options];
     [self _openEditor:image config:config features:features resolve:resolve reject:reject];
 }
@@ -248,26 +243,26 @@ RCT_EXPORT_METHOD(openCamera: (NSArray*) features options:(NSDictionary*) option
     __weak typeof(self) weakSelf = self;
     UIViewController *currentViewController = RCTPresentedViewController();
     PESDKConfiguration* config = [self _buildConfig:options];
-    
+
     self.cameraController = [[PESDKCameraViewController alloc] initWithConfiguration:config];
     [self.cameraController.cameraController setupWithInitialRecordingMode:RecordingModePhoto error:nil];
-    
+
     UISwipeGestureRecognizer* swipeDownRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(close)];
     swipeDownRecognizer.direction = UISwipeGestureRecognizerDirectionDown;
-    
+
     [self.cameraController.view addGestureRecognizer:swipeDownRecognizer];
     [self.cameraController setCompletionBlock:^(UIImage * image, NSURL * _) {
         [currentViewController dismissViewControllerAnimated:YES completion:^{
             [weakSelf _openEditor:image config:config features:features resolve:resolve reject:reject];
         }];
     }];
-    
+
     [currentViewController presentViewController:self.cameraController animated:YES completion:nil];
 }
 
 -(void)photoEditViewControllerDidCancel:(PESDKPhotoEditViewController *)photoEditViewController {
     if (self.rejecter != nil) {
-//        self.rejecter(@"DID_CANCEL", @"User did cancel the editor", nil);
+        self.rejecter(@"DID_CANCEL", @"User did cancel the editor", nil);
         self.rejecter = nil;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.editController.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
@@ -282,24 +277,20 @@ RCT_EXPORT_METHOD(openCamera: (NSArray*) features options:(NSDictionary*) option
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.editController.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
         });
-        
     }
 }
 
 -(void)photoEditViewController:(PESDKPhotoEditViewController *)photoEditViewController didSaveImage:(UIImage *)image imageAsData:(NSData *)data {
-    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,
-                                                         NSUserDomainMask, YES);
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString *documentsDirectory = [paths objectAtIndex:0];
     NSString *randomPath = [PhotoEditorSDK randomStringWithLength:10];
-    NSString* path = [documentsDirectory stringByAppendingPathComponent:
-                      [randomPath stringByAppendingString:@".jpg"] ];
-    
+    NSString* path = [documentsDirectory stringByAppendingPathComponent: [randomPath stringByAppendingString:@".jpg"] ];
+
     [data writeToFile:path atomically:YES];
     self.resolver(path);
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.editController.presentingViewController dismissViewControllerAnimated:YES completion:NULL];
     });
-    
 }
 
 @end

@@ -50,6 +50,7 @@ import ly.img.android.sdk.tools.TransformEditorTool;
 import ly.img.android.ui.activities.CameraPreviewBuilder;
 import ly.img.android.ui.activities.ImgLyIntent;
 import ly.img.android.ui.activities.PhotoEditorBuilder;
+import ly.img.android.sdk.models.config.CropAspectConfig;
 
 public class PESDKModule extends ReactContextBaseJavaModule {
 
@@ -123,13 +124,8 @@ public class PESDKModule extends ReactContextBaseJavaModule {
                         EditorSaveSettings.SavePolicy.RETURN_ALWAYS_ONLY_OUTPUT
                 );
 
-
-
-                // TODO: Config options in PESDK v5 are limited compared to iOS (or I didn't find them)
-
+        // TODO: Config options in PESDK v5 are limited compared to iOS (or I didn't find them)
         PESDKConfig config = settingsList.getConfig();
-
-
 
         ArrayList<ToolConfigInterface> tools = new ArrayList<>();
         ArrayList featureList;
@@ -148,8 +144,6 @@ public class PESDKModule extends ReactContextBaseJavaModule {
         } else {
             featureList = features.toArrayList();
         }
-
-
 
         for (Object f: featureList) {
             String feature = f.toString();
@@ -183,6 +177,14 @@ public class PESDKModule extends ReactContextBaseJavaModule {
                     break;
             }
         }
+        ArrayList cropConfig = new ArrayList<>();
+
+        cropConfig.add(new CropAspectConfig(1, 1));
+        cropConfig.add(new CropAspectConfig(3, 2));
+        cropConfig.add(new CropAspectConfig(2, 3));
+
+        config.setForcedCropMode(true, new CropAspectConfig(1, 1), new CropAspectConfig(1, 1));
+        config.setAspects(cropConfig);
 
         config.setTools(tools);
 
@@ -219,7 +221,7 @@ public class PESDKModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void openEditor(@NonNull String image, ReadableArray features, ReadableMap options, final Promise promise) {
         if (getCurrentActivity() == null) {
-           promise.reject(E_ACTIVITY_DOES_NOT_EXIST, "Activity does not exist");
+            promise.reject(E_ACTIVITY_DOES_NOT_EXIST, "Activity does not exist");
         } else {
             mPESDKPromise = promise;
 
