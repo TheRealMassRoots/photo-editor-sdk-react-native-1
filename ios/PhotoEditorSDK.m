@@ -171,13 +171,10 @@ static NSString *letters = @"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
         }
     }];
 
-
-    self.editController = [[PESDKPhotoEditViewController alloc] initWithPhoto:image configuration:config menuItems:menuItems photoEditModel:photoEditModel];
-
-    self.editController.delegate = self;
-    UIViewController *currentViewController = RCTPresentedViewController();
-
     dispatch_async(dispatch_get_main_queue(), ^{
+        self.editController = [[PESDKPhotoEditViewController alloc] initWithPhoto:image configuration:config menuItems:menuItems photoEditModel:photoEditModel];
+        self.editController.delegate = self;
+        UIViewController *currentViewController = RCTPresentedViewController();
         [currentViewController presentViewController:self.editController animated:YES completion:nil];
     });
 }
